@@ -141,7 +141,7 @@ def getlexical_generation_probs(baseline_matrix,word,tag,tokenToIdMap):
 
 # returns list of most probable tag sequence for given sentence
 # transitionProbs: ngram probs for tags
-def runViterbi(transitionProbs, lexGenProbs, tokenToIdMap, sentence):
+def runViterbi(transitionProbs, baseline_matrix, tokenToIdMap, sentence):
     sentenceList = sentence.split(' ')
     numrows = 9
     numcols = len(sentenceList)
@@ -151,9 +151,36 @@ def runViterbi(transitionProbs, lexGenProbs, tokenToIdMap, sentence):
     # calculate first column separately because previous column is start
     # for first column: score = P(t | <s>) * P(w | t), bptr = 0
     for i in range(numrows):
-        score = transitionProbs[START, i]
+        lexprob = getlexical_generation_probs(baseline_matrix, sentenceList[0], idToTagName(i), tokenToIdMap)
+        score = transitionProbs[START, i] * lexprob
+        scoreMatrix[i, 0] = score
+        # leave bptrMatrix[i, 0] as 0
+
+    # calculate scores and backpointers for all other cols
+    for j in range(1, numcols):
+        prev_col = scoreMatrix[:, j - 1]
+        for i in range(numrows):
+            score, bptr = calculateScoreAndBptr(prev_col, tokenToIdMap[sentenceList[j]], i)
+            scoreMatrix[i, j] = score
+            bptrMatrix[i, j] = bptr
+
+    return getTagSequence(bptrMatrix)
 
 
+# TODO
+# return tuple of (score, bptr) for a given point in the viterbi matrix ([tag, word])
+def calculateScoreAndBptr(prev_col_scores, word_id, tag_id):
+    # score = max_i (prev_col_scores[i] * P(tag | t_i)) * P(word | tag)
+    # bptr = i that gives max score
+    return 0, 0  # placeholder
+
+
+# TODO
+# return list of tags representing most probable tag sequence
+def getTagSequence(bptrMatrix, scoreMatrix):
+    # last tag = index of max value in last column of scoreMatrix
+    # walk backwards through bptrMatrix starting at [last_tag, last_col], prepending each bptr to the sequence
+    return  # placeholder
 
 
 if __name__ == "__main__":
