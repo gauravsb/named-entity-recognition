@@ -130,6 +130,13 @@ def getBaselinePrediction(prediction_string,baseline_matrix_counts,tokenToIdMap)
         result_tags.append(idToTagName(result))
     return result_tags
 
+def getlexical_generation_probs(baseline_matrix,word,tag,tokenToIdMap):
+    tag_id=tagNameToId(tag)
+    token_id=tokenToIdMap[word]
+    tag_column=baseline_matrix[:,tag_id]
+    tag_count=np.sum(tag_column)
+    word_count=baseline_matrix[token_id][tag_id]
+    return word_count/tag_count
 
 
 # returns list of most probable tag sequence for given sentence
@@ -144,7 +151,7 @@ def runViterbi(transitionProbs, lexGenProbs, tokenToIdMap, sentence):
     # calculate first column separately because previous column is start
     # for first column: score = P(t | <s>) * P(w | t), bptr = 0
     for i in range(numrows):
-        score = transitionProbs[START, i] 
+        score = transitionProbs[START, i]
 
 
 
