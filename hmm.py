@@ -63,6 +63,31 @@ def getTagId(tag_string):
     if tag_string == "B-MISC": return 7
     if tag_string == "I-MISC": return 8
 
+def getTagname(tag_number):
+    if tag_number == 0: return "O"
+    if tag_number == 1: return "B-PER"
+    if tag_number == 2: return "I-PER"
+    if tag_number == 3: return "B-LOC"
+    if tag_number == 4: return "I-LOC"
+    if tag_number == 5: return "B-ORG"
+    if tag_number == 6: return "I-ORG"
+    if tag_number == 7: return "B-MISC"
+    if tag_number == 8: return "I-MISC"
+
+
+def token_generation(data):
+    tokenList = data.split(" ")
+    token_to_id_map = {}
+
+    k = 0
+    for i in range(len(tokenList)):
+        if tokenList[i] not in token_to_id_map:
+            token_to_id_map[tokenList[i]] = k
+
+            k += 1
+        # id_to_token_map={v: k for k,v in token_to_id_map.items()}
+
+    return token_to_id_map
 
 # returns matrix M such that M[i, j] = # of (t_i t_j) sequences
 def createUnsmoothedTagBigramCounts(lines_of_tags):
@@ -82,6 +107,28 @@ def getBigramProbsFromCounts(bigramCountMatrix):
     bigramProbMatrix = bigramCountMatrix / bigramCountMatrix.sum(axis=1, keepdims=True)
     return bigramProbMatrix
 
+def getbaseline_matrix(tokenToIdMap,wordlines,taglines):
+    words=wordlines.split(" ")
+    tags=taglines.split(" ")
+    word_types=len(tokenToIdMap)
+
+    baseline_matrix_counts=np.zeros[(wordtypes,9)]
+    for w,t in words,tags:
+        tag_id=getTagId(t)
+        token_idtokenToIdMap
+        baseline_matrix_counts[token_id][tag_id]+=1
+    return baseline_matrix_counts
+
+def getBaselinePrediction(prediction_string,baseline_matrix_counts,tokenToIdMap):
+    prediction_string=prediction_string.split(" ")
+    result_tags=[]
+    for token in prediction_string:
+        token_id=tokenToIdMap[token]
+        result=np.argmax(np.max(baseline_matrix_counts, axis=0))
+        result_tags.append(getTagname(result))
+    return result_tags
+
+
 
 if __name__ == "__main__":
     # read and parse the train file
@@ -90,3 +137,7 @@ if __name__ == "__main__":
 
     # TODO: Add relevant preprocessing
     preprocess(fileData)
+    wordlines=read_token_lines("train.txt")
+    taglines=read_token_lines("train.txt")
+    tokenmap=token_generation(wordlines)
+    baseline_matrix=getbaseline_matrix(tokenmap,wordlines,taglines)
