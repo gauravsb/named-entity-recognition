@@ -52,7 +52,7 @@ def writeToCSVFile(rowList):
             writer.writerow(string)
 
 
-def getTagId(tag_string):
+def tagNameToId(tag_string):
     if tag_string == "O": return 0
     if tag_string == "B-PER": return 1
     if tag_string == "I-PER": return 2
@@ -63,16 +63,17 @@ def getTagId(tag_string):
     if tag_string == "B-MISC": return 7
     if tag_string == "I-MISC": return 8
 
-def getTagname(tag_number):
-    if tag_number == 0: return "O"
-    if tag_number == 1: return "B-PER"
-    if tag_number == 2: return "I-PER"
-    if tag_number == 3: return "B-LOC"
-    if tag_number == 4: return "I-LOC"
-    if tag_number == 5: return "B-ORG"
-    if tag_number == 6: return "I-ORG"
-    if tag_number == 7: return "B-MISC"
-    if tag_number == 8: return "I-MISC"
+
+def idToTagName(tag_id):
+    if tag_id == 0: return "O"
+    if tag_id == 1: return "B-PER"
+    if tag_id == 2: return "I-PER"
+    if tag_id == 3: return "B-LOC"
+    if tag_id == 4: return "I-LOC"
+    if tag_id == 5: return "B-ORG"
+    if tag_id == 6: return "I-ORG"
+    if tag_id == 7: return "B-MISC"
+    if tag_id == 8: return "I-MISC"
 
 
 def token_generation(data):
@@ -89,16 +90,17 @@ def token_generation(data):
 
     return token_to_id_map
 
+
 # returns matrix M such that M[i, j] = # of (t_i t_j) sequences
 def createUnsmoothedTagBigramCounts(lines_of_tags):
     bigramCountMatrix = np.zeros([10, 10])
 
     for l in range(len(lines_of_tags)):
         line = lines_of_tags[l].split(' ')
-        first_tag = getTagId(line[0])
+        first_tag = tagNameToId(line[0])
         bigramCountMatrix[START, first_tag] += 1
         for i in range(1, len(l)):
-            bigramCountMatrix[getTagId(l[i-1]), getTagId(l[i])] += 1
+            bigramCountMatrix[tagNameToId(l[i - 1]), tagNameToId(l[i])] += 1
 
     return bigramCountMatrix
 
@@ -112,10 +114,10 @@ def getbaseline_matrix(tokenToIdMap,wordlines,taglines):
     tags=taglines.split(" ")
     word_types=len(tokenToIdMap)
 
-    baseline_matrix_counts=np.zeros[(wordtypes,9)]
+    baseline_matrix_counts=np.zeros[(word_types,9)]
     for w,t in words,tags:
-        tag_id=getTagId(t)
-        token_idtokenToIdMap
+        tag_id=tagNameToId(t)
+        token_id=tokenToIdMap[w]
         baseline_matrix_counts[token_id][tag_id]+=1
     return baseline_matrix_counts
 
@@ -124,9 +126,26 @@ def getBaselinePrediction(prediction_string,baseline_matrix_counts,tokenToIdMap)
     result_tags=[]
     for token in prediction_string:
         token_id=tokenToIdMap[token]
-        result=np.argmax(np.max(baseline_matrix_counts, axis=0))
-        result_tags.append(getTagname(result))
+        result=np.argmax(np.max(baseline_matrix_counts[token_id], axis=0))
+        result_tags.append(idToTagName(result))
     return result_tags
+
+
+
+# returns list of most probable tag sequence for given sentence
+# transitionProbs: ngram probs for tags
+def runViterbi(transitionProbs, lexGenProbs, tokenToIdMap, sentence):
+    sentenceList = sentence.split(' ')
+    numrows = 9
+    numcols = len(sentenceList)
+    scoreMatrix = np.zeros([numrows, numcols])
+    bptrMatrix = np.zeros([numrows, numcols])
+
+    # calculate first column separately because previous column is start
+    # for first column: score = P(t | <s>) * P(w | t), bptr = 0
+    for i in range(numrows):
+        score = transitionProbs[START, i] 
+
 
 
 
@@ -136,7 +155,6 @@ if __name__ == "__main__":
     print(fileData)
 
     # TODO: Add relevant preprocessing
-    preprocess(fileData)
     wordlines=read_token_lines("train.txt")
     taglines=read_token_lines("train.txt")
     tokenmap=token_generation(wordlines)
