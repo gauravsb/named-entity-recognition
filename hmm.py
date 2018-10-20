@@ -211,7 +211,9 @@ if __name__ == "__main__":
     print(fileData)
 
     # TODO: Add relevant preprocessing
-    wordlines=read_token_lines("train.txt")
-    taglines=read_token_lines("train.txt")
-    tokenmap=token_generation(wordlines)
-    baseline_matrix=getbaseline_matrix(tokenmap,wordlines,taglines)
+    wordLines = read_token_lines("train.txt")
+    wordLines = "".join(wordLines)
+    tagLines = read_tag_lines("train.txt")
+    tagLines = "".join(tagLines)
+    tokenmap = token_generation(wordLines)
+    baseline_matrix = getbaseline_matrix(tokenmap, wordLines, tagLines)
