@@ -96,7 +96,7 @@ def createUnsmoothedTagBigramCounts(lines_of_tags):
     bigramCountMatrix = np.zeros([10, 10])
 
     for l in range(len(lines_of_tags)):
-        line = lines_of_tags[l].split(' ')
+        line = lines_of_tags[l].split('\t')
         first_tag = tagNameToId(line[0])
         bigramCountMatrix[START, first_tag] += 1
         for i in range(1, len(l)):
