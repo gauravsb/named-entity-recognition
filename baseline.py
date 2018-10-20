@@ -1,9 +1,9 @@
 import numpy as np
 import os
-import json
 import math
 import csv
 import collections
+from collections import defaultdict
 
 ### CONSTANTS ###
 O_XXX = 0
@@ -55,14 +55,6 @@ def read_prediction_lines(filename):
     lines = read_all_lines(filename)
     desired_lines = lines[0::3]
     return desired_lines
-
-
-def writeToCSVFile(rowList):
-    with open('output.csv', mode='w') as f:
-        writer = csv.writer(f, delimiter=',')
-        writer.writerow(['Id', 'Prediction'])
-        for string in rowList:
-            writer.writerow(string)
 
 
 def tagNameToId(tag_string):
@@ -151,17 +143,41 @@ def getBaselinePrediction(prediction_string, baseline_matrix_counts, tokenToIdMa
     prediction_string = prediction_string.split("\t")
     # print (prediction_string)
     result_tags = []
+    resultMap = {}
+    index = 0
+    tag = ""
+    previousTag = None
+    #currentTag = ""
+    #startIndex = 0
     for token in prediction_string:
         if token in tokenToIdMap:
             token_id = tokenToIdMap[token]
             #print (baseline_matrix_counts[token_id])
             result = np.argmax((baseline_matrix_counts[token_id]))
             #print(result)
-            #print (token, idToTagName(result))
-            result_tags.append(idToTagName(result))
+            #result_tags.append(idToTagName(result))
+            #print (idToTagName(result))
+            #print (getTag(idToTagName(result)))
+            #result_tags.append(getTag(idToTagName(result)))
+            tag = (getTag(idToTagName(result)), index)
         else:
-            result_tags.append(idToTagName(0))
-    print (result_tags)
+            #result_tags.append((getTag(idToTagName(0)), index))
+            tag = (getTag(idToTagName(0)), index)
+
+        '''
+        if previousTag == None:
+            previousTag = tag
+        if tag != "O":
+            if tag == previousTag:
+                resultMap[tag] =
+            else :
+        
+        previousTag = tag
+        '''
+
+        result_tags.append(tag)
+        index += 1
+    #print (result_tags)
     return result_tags
 
 
@@ -218,6 +234,61 @@ def getTagSequence(bptrMatrix, scoreMatrix):
     return  # placeholder
 
 
+def isPER(str):
+    return str == "B-PER" or str == "I-PER"
+
+def isLOC(str):
+    return str == "B-LOC" or str == "I-LOC"
+
+def isORG(str):
+    return str == "B-ORG" or str == "I-ORG"
+
+def isMISC(str):
+    return str == "B-MISC" or str == "I-MISC"
+
+def getTag(tag):
+    if (isPER(tag)):
+        return "PER"
+    if (isLOC(tag)):
+        return "LOC"
+    if (isORG(tag)):
+        return "ORG"
+    if (isMISC(tag)):
+        return "MISC"
+    return "O"
+
+def convertToSubmissionOutput(predicted_tags):
+    resultMap = defaultdict(list)
+    i = 0
+    while(i < len(predicted_tags)):
+        #print (predicted_tags[i][0])
+        if predicted_tags[i][0] == "O":
+            i += 1
+            continue
+        tag = predicted_tags[i][0]
+        startIndex = i
+        while (i+1 < len(predicted_tags) and predicted_tags[i+1][0] == predicted_tags[i][0]):
+            i += 1
+        endIndex = i
+        resultMap[tag].append((startIndex, endIndex))
+        i += 1
+    return resultMap
+
+
+def writeToCSVFile(rowList):
+    with open('baseline-output.csv', mode='w') as f:
+        writer = csv.writer(f, delimiter=',')
+        writer.writerow(['Type','Prediction'])
+        rowList = rowList.split("\n")
+        for str in rowList:
+            print (str)
+            writer.writerow(str)
+
+
+def writeOutputToFile(fileName, strToWrite):
+    with open(fileName, 'w') as the_file:
+        the_file.write(strToWrite)
+
 if __name__ == "__main__":
     # read and parse the train file
     # fileData = read_file("train.txt")
@@ -236,5 +307,23 @@ if __name__ == "__main__":
     prediction = "\t".join(prediction)
 
     baseline_predicted_tags = getBaselinePrediction(prediction, baseline_matrix, tokenmap)
+    #print (baseline_predicted_tags)
 
-    convertToSubmissionOutput(baseline_predicted_tags)
+    result = convertToSubmissionOutput(baseline_predicted_tags)
+    #print (dict(result))
+    string = "Type,Prediction\n"
+    for k, v in result.items():
+        #print (k)
+        #print (v)
+        string += k
+        string += ","
+        for tuple in v:
+            string += str(tuple[0])
+            string += "-"
+            string += str(tuple[1])
+            string += " "
+        string += "\n"
+    print (string)
+    #writeToCSVFile(string)
+    writeOutputToFile('baseline-output.csv', string)
+
