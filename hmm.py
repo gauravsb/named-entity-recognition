@@ -139,7 +139,7 @@ def getlexical_generation_probs(baseline_matrix,word,tag,tokenToIdMap):
     return word_count/tag_count
 
 
-# returns list of most probable tag sequence for given sentence
+# returns list of most probable sequence of tag names for given sentence
 # transitionProbs: ngram probs for tags
 def runViterbi(transitionProbs, baseline_matrix, tokenToIdMap, sentence):
     sentenceList = sentence.split(' ')
@@ -160,27 +160,49 @@ def runViterbi(transitionProbs, baseline_matrix, tokenToIdMap, sentence):
     for j in range(1, numcols):
         prev_col = scoreMatrix[:, j - 1]
         for i in range(numrows):
-            score, bptr = calculateScoreAndBptr(prev_col, tokenToIdMap[sentenceList[j]], i)
+            lex_gen_prob = getlexical_generation_probs(baseline_matrix, sentenceList[j],
+                                                       idToTagName(i), tokenToIdMap)
+            score, bptr = calculateScoreAndBptr(prev_col, tokenToIdMap[sentenceList[j]], i,
+                                                transitionProbs, lex_gen_prob)
             scoreMatrix[i, j] = score
             bptrMatrix[i, j] = bptr
 
     return getTagSequence(bptrMatrix)
 
 
-# TODO
 # return tuple of (score, bptr) for a given point in the viterbi matrix ([tag, word])
-def calculateScoreAndBptr(prev_col_scores, word_id, tag_id):
+# transition_probs = bigram prob matrix of tags
+# lex_gen_prob = P(word | tag)
+def calculateScoreAndBptr(prev_col_scores, tag_id, transition_probs, lex_gen_prob):
     # score = max_i (prev_col_scores[i] * P(tag | t_i)) * P(word | tag)
     # bptr = i that gives max score
-    return 0, 0  # placeholder
+    transition_probs_t = transition_probs[:,tag_id]  # size 9 array where [i] = P(tag | t_i)
+    score_times_transition = prev_col_scores * transition_probs_t  # size 9 array, [i] = Score[i,j-1]*P(tag|t_i)
+    best_prev_tag_id = np.argmax(score_times_transition)
+    score = np.max(score_times_transition) * lex_gen_prob
+
+    return best_prev_tag_id, score
 
 
-# TODO
-# return list of tags representing most probable tag sequence
-def getTagSequence(bptrMatrix, scoreMatrix):
+
+# return list of tag names representing most probable tag sequence
+def getTagSequence(bptr_matrix, score_matrix):
     # last tag = index of max value in last column of scoreMatrix
-    # walk backwards through bptrMatrix starting at [last_tag, last_col], prepending each bptr to the sequence
-    return  # placeholder
+    # walk backwards through bptr_matrix starting at [last_tag, last_col], prepending each bptr to the sequence
+    sentence_len = np.size(score_matrix[0])
+    last_tag = np.argmax(score_matrix[:, sentence_len - 1])  # index of largest value in last col
+    tag_sequence = []
+
+    col = sentence_len - 1  # start at last col
+    row = last_tag
+    while col >= 0:
+        tag_sequence.append(idToTagName(row))
+        row = bptr_matrix[row, col]
+        col -= 1
+
+    tag_sequence.reverse()
+
+    return tag_sequence
 
 
 if __name__ == "__main__":
