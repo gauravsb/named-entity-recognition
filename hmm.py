@@ -246,8 +246,8 @@ def getlexical_generation_probs(baseline_matrix, word, tag, tokenToIdMap):
         word_count = baseline_matrix[token_id][tag_id]
         return (word_count + 1) / (tag_count + len(tokenmap))
     else:
-        sum=np.sum(baseline_matrix)
-        return 1.0/sum*1.0
+        sum = np.sum(baseline_matrix)
+        return 1.0 / sum * 1.0
 
 
 # returns list of most probable sequence of tag names for given sentence
@@ -271,7 +271,7 @@ def runViterbi(transitionProbs, baseline_matrix, tokenToIdMap, sentence):
     for j in range(1, numcols):
         prev_col = scoreMatrix[:, j - 1]
         for i in range(numrows):
-            lex_gen_prob = getlexical_generation_probs(baseline_matrix, sentenceList[j],idToTagName(i), tokenToIdMap)
+            lex_gen_prob = getlexical_generation_probs(baseline_matrix, sentenceList[j], idToTagName(i), tokenToIdMap)
             score, bptr = calculateScoreAndBptr(prev_col, i, transitionProbs, lex_gen_prob)
             scoreMatrix[i, j] = score
             bptrMatrix[i, j] = bptr
@@ -285,18 +285,17 @@ def runViterbi(transitionProbs, baseline_matrix, tokenToIdMap, sentence):
 def calculateScoreAndBptr(prev_col_scores, tag_id, transition_probs, lex_gen_prob):
     # score = max_i (prev_col_scores[i] * P(tag | t_i)) * P(word | tag)
     # bptr = i that gives max score
-    transition_probs_t = transition_probs[:,tag_id]  # size 9 array where [i] = P(tag | t_i)
-    #score_times_transition = prev_col_scores * transition_probs_t[:START]  #  size 9 array, [i] = Score[i,j-1]*P(tag|t_i); have to cut off start value from tx probs
+    transition_probs_t = transition_probs[:, tag_id]  # size 9 array where [i] = P(tag | t_i)
+    # score_times_transition = prev_col_scores * transition_probs_t[:START]  #  size 9 array, [i] = Score[i,j-1]*P(tag|t_i); have to cut off start value from tx probs
     score_times_transition = np.log(prev_col_scores) * np.log(transition_probs_t[:START])
-    score_times_transition=np.exp(score_times_transition)
+    score_times_transition = np.exp(score_times_transition)
     best_prev_tag_id = np.argmax(score_times_transition)
-    a=np.max(score_times_transition)
-    b=lex_gen_prob
-    #score = np.max(score_times_transition) * lex_gen_prob
-    score = np.log(a)+np.log(b)
-    score=np.exp(score)
+    a = np.max(score_times_transition)
+    b = lex_gen_prob
+    # score = np.max(score_times_transition) * lex_gen_prob
+    score = np.log(a) + np.log(b)
+    score = np.exp(score)
     return score, best_prev_tag_id
-
 
 
 # return list of tag names representing most probable tag sequence
@@ -320,13 +319,13 @@ def getTagSequence(bptr_matrix, score_matrix):
 
 
 if __name__ == "__main__":
-
     wordlines = read_token_lines("train.txt")
     taglines = read_tag_lines("train.txt")
     tokenmap = token_generation(wordlines)
     baseline_matrix = getbaseline_matrix(tokenmap, wordlines, taglines)
-    bigramCountMatrix=createUnsmoothedTagBigramCounts(taglines)
-    bigramProbMatrix=getBigramProbsFromCounts(bigramCountMatrix)
+    bigramCountMatrix = createUnsmoothedTagBigramCounts(taglines)
+    bigramProbMatrix = getBigramProbsFromCounts(bigramCountMatrix)
     prediction = read_prediction_lines("test.txt")
     prediction = "\t".join(prediction)
-    result=runViterbi(bigramProbMatrix,baseline_matrix,tokenmap,prediction)
+    result = runViterbi(bigramProbMatrix, baseline_matrix, tokenmap, prediction)
+    print (result)
