@@ -147,33 +147,16 @@ def getBaselinePrediction(prediction_string, baseline_matrix_counts, tokenToIdMa
     index = 0
     tag = ""
     previousTag = None
-    # currentTag = ""
-    # startIndex = 0
     for token in prediction_string:
         if token in tokenToIdMap:
             token_id = tokenToIdMap[token]
             # print (baseline_matrix_counts[token_id])
             result = np.argmax((baseline_matrix_counts[token_id]))
-            # print(result)
-            # result_tags.append(idToTagName(result))
-            # print (idToTagName(result))
-            # print (getTag(idToTagName(result)))
             # result_tags.append(getTag(idToTagName(result)))
             tag = (getTag(idToTagName(result)), index)
         else:
             # result_tags.append((getTag(idToTagName(0)), index))
             tag = (getTag(idToTagName(0)), index)
-
-        '''
-        if previousTag == None:
-            previousTag = tag
-        if tag != "O":
-            if tag == previousTag:
-                resultMap[tag] =
-            else :
-        
-        previousTag = tag
-        '''
 
         result_tags.append(tag)
         index += 1
@@ -188,22 +171,6 @@ def getlexical_generation_probs(baseline_matrix, word, tag, tokenToIdMap):
     tag_count = np.sum(tag_column)
     word_count = baseline_matrix[token_id][tag_id]
     return word_count / tag_count
-
-
-# TODO
-# return tuple of (score, bptr) for a given point in the viterbi matrix ([tag, word])
-def calculateScoreAndBptr(prev_col_scores, word_id, tag_id):
-    # score = max_i (prev_col_scores[i] * P(tag | t_i)) * P(word | tag)
-    # bptr = i that gives max score
-    return 0, 0  # placeholder
-
-
-# TODO
-# return list of tags representing most probable tag sequence
-def getTagSequence(bptrMatrix, scoreMatrix):
-    # last tag = index of max value in last column of scoreMatrix
-    # walk backwards through bptrMatrix starting at [last_tag, last_col], prepending each bptr to the sequence
-    return  # placeholder
 
 
 def isPER(str):
