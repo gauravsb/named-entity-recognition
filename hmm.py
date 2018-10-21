@@ -118,7 +118,9 @@ def token_generation(data):
 
 # returns matrix M such that M[i, j] = # of (t_i t_j) sequences
 def createUnsmoothedTagBigramCounts(lines_of_tags):
-    bigramCountMatrix = np.ones([10, 10])
+    bigramCountMatrix = np.zeros([10, 10])
+    bigramCountMatrix.fill(0.1)
+    print(bigramCountMatrix)
 
     for l in range(len(lines_of_tags)):
         line = lines_of_tags[l].split('\t')
@@ -246,10 +248,10 @@ def getlexical_generation_probs(baseline_matrix, word, tag, tokenToIdMap):
         tag_column = baseline_matrix[:, tag_id]
         tag_count = np.sum(tag_column)
         word_count = baseline_matrix[token_id][tag_id]
-        return (word_count + 1) / (tag_count + len(tokenmap))
+        return (word_count + 0.1) / (tag_count + len(tokenmap))
     else:
         sum = np.sum(baseline_matrix)
-        return 1.0 / sum * 1.0
+        return 1.0 / sum
 
 
 # returns list of most probable sequence of tag names for given sentence

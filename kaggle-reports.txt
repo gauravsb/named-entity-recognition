@@ -1,3 +1,8 @@
 
 Oct 20
 Baseline - 0.70775
+
+Oct 21
+HMM - 0.70113 (add 1 smoothing for word/tag, add 1 smoothing for tag/tag)
+HMM - 0.76936 (add 0.1 smoothing for word/tag, add 1 smoothing for tag/tag)
+HMM - 0.76952 (add 0.1 smoothing for word/tag, add 0.1 smoothing for tag/tag)
