@@ -127,14 +127,14 @@ def getbaseline_matrix(tokenToIdMap, wordlines, taglines):
     baseline_matrix_counts = np.zeros((word_types, 9))
     # for w,t in words,tags:
     for i in range(len(words)):
-        #print (tags[i])
+        # print (tags[i])
         tag_id = tagNameToId(tags[i])
-        #print (tag_id)
+        # print (tag_id)
         token_id = tokenToIdMap[words[i]]
         baseline_matrix_counts[token_id][tag_id] += 1
-        #if baseline_matrix_counts[token_id][tag_id] > 0:
-        #print (baseline_matrix_counts[token_id][tag_id])
-    #print (baseline_matrix_counts)
+        # if baseline_matrix_counts[token_id][tag_id] > 0:
+        # print (baseline_matrix_counts[token_id][tag_id])
+    # print (baseline_matrix_counts)
 
     return baseline_matrix_counts
 
@@ -147,21 +147,21 @@ def getBaselinePrediction(prediction_string, baseline_matrix_counts, tokenToIdMa
     index = 0
     tag = ""
     previousTag = None
-    #currentTag = ""
-    #startIndex = 0
+    # currentTag = ""
+    # startIndex = 0
     for token in prediction_string:
         if token in tokenToIdMap:
             token_id = tokenToIdMap[token]
-            #print (baseline_matrix_counts[token_id])
+            # print (baseline_matrix_counts[token_id])
             result = np.argmax((baseline_matrix_counts[token_id]))
-            #print(result)
-            #result_tags.append(idToTagName(result))
-            #print (idToTagName(result))
-            #print (getTag(idToTagName(result)))
-            #result_tags.append(getTag(idToTagName(result)))
+            # print(result)
+            # result_tags.append(idToTagName(result))
+            # print (idToTagName(result))
+            # print (getTag(idToTagName(result)))
+            # result_tags.append(getTag(idToTagName(result)))
             tag = (getTag(idToTagName(result)), index)
         else:
-            #result_tags.append((getTag(idToTagName(0)), index))
+            # result_tags.append((getTag(idToTagName(0)), index))
             tag = (getTag(idToTagName(0)), index)
 
         '''
@@ -177,7 +177,7 @@ def getBaselinePrediction(prediction_string, baseline_matrix_counts, tokenToIdMa
 
         result_tags.append(tag)
         index += 1
-    #print (result_tags)
+    # print (result_tags)
     return result_tags
 
 
@@ -188,34 +188,6 @@ def getlexical_generation_probs(baseline_matrix, word, tag, tokenToIdMap):
     tag_count = np.sum(tag_column)
     word_count = baseline_matrix[token_id][tag_id]
     return word_count / tag_count
-
-
-# returns list of most probable tag sequence for given sentence
-# transitionProbs: ngram probs for tags
-def runViterbi(transitionProbs, baseline_matrix, tokenToIdMap, sentence):
-    sentenceList = sentence.split(' ')
-    numrows = 9
-    numcols = len(sentenceList)
-    scoreMatrix = np.zeros([numrows, numcols])
-    bptrMatrix = np.zeros([numrows, numcols])
-
-    # calculate first column separately because previous column is start
-    # for first column: score = P(t | <s>) * P(w | t), bptr = 0
-    for i in range(numrows):
-        lexprob = getlexical_generation_probs(baseline_matrix, sentenceList[0], idToTagName(i), tokenToIdMap)
-        score = transitionProbs[START, i] * lexprob
-        scoreMatrix[i, 0] = score
-        # leave bptrMatrix[i, 0] as 0
-
-    # calculate scores and backpointers for all other cols
-    for j in range(1, numcols):
-        prev_col = scoreMatrix[:, j - 1]
-        for i in range(numrows):
-            score, bptr = calculateScoreAndBptr(prev_col, tokenToIdMap[sentenceList[j]], i)
-            scoreMatrix[i, j] = score
-            bptrMatrix[i, j] = bptr
-
-    return getTagSequence(bptrMatrix)
 
 
 # TODO
@@ -237,14 +209,18 @@ def getTagSequence(bptrMatrix, scoreMatrix):
 def isPER(str):
     return str == "B-PER" or str == "I-PER"
 
+
 def isLOC(str):
     return str == "B-LOC" or str == "I-LOC"
+
 
 def isORG(str):
     return str == "B-ORG" or str == "I-ORG"
 
+
 def isMISC(str):
     return str == "B-MISC" or str == "I-MISC"
+
 
 def getTag(tag):
     if (isPER(tag)):
@@ -257,17 +233,18 @@ def getTag(tag):
         return "MISC"
     return "O"
 
+
 def convertToSubmissionOutput(predicted_tags):
     resultMap = defaultdict(list)
     i = 0
-    while(i < len(predicted_tags)):
-        #print (predicted_tags[i][0])
+    while (i < len(predicted_tags)):
+        # print (predicted_tags[i][0])
         if predicted_tags[i][0] == "O":
             i += 1
             continue
         tag = predicted_tags[i][0]
         startIndex = i
-        while (i+1 < len(predicted_tags) and predicted_tags[i+1][0] == predicted_tags[i][0]):
+        while (i + 1 < len(predicted_tags) and predicted_tags[i + 1][0] == predicted_tags[i][0]):
             i += 1
         endIndex = i
         resultMap[tag].append((startIndex, endIndex))
@@ -278,7 +255,7 @@ def convertToSubmissionOutput(predicted_tags):
 def writeToCSVFile(rowList):
     with open('baseline-output.csv', mode='w') as f:
         writer = csv.writer(f, delimiter=',')
-        writer.writerow(['Type','Prediction'])
+        writer.writerow(['Type', 'Prediction'])
         rowList = rowList.split("\n")
         for str in rowList:
             print (str)
@@ -288,6 +265,7 @@ def writeToCSVFile(rowList):
 def writeOutputToFile(fileName, strToWrite):
     with open(fileName, 'w') as the_file:
         the_file.write(strToWrite)
+
 
 if __name__ == "__main__":
     # read and parse the train file
@@ -307,14 +285,14 @@ if __name__ == "__main__":
     prediction = "\t".join(prediction)
 
     baseline_predicted_tags = getBaselinePrediction(prediction, baseline_matrix, tokenmap)
-    #print (baseline_predicted_tags)
+    # print (baseline_predicted_tags)
 
     result = convertToSubmissionOutput(baseline_predicted_tags)
-    #print (dict(result))
+    # print (dict(result))
     string = "Type,Prediction\n"
     for k, v in result.items():
-        #print (k)
-        #print (v)
+        # print (k)
+        # print (v)
         string += k
         string += ","
         for tuple in v:
@@ -324,6 +302,5 @@ if __name__ == "__main__":
             string += " "
         string += "\n"
     print (string)
-    #writeToCSVFile(string)
+    # writeToCSVFile(string)
     writeOutputToFile('baseline-output.csv', string)
-
