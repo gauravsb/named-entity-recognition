@@ -248,7 +248,7 @@ def getlexical_generation_probs(baseline_matrix, word, tag, tokenToIdMap):
         tag_column = baseline_matrix[:, tag_id]
         tag_count = np.sum(tag_column)
         word_count = baseline_matrix[token_id][tag_id]
-        return (word_count + 0.1) / (tag_count + len(tokenmap))
+        return (word_count + 0.1) / (tag_count + 0.1 * len(tokenmap))
     else:
         sum = np.sum(baseline_matrix)
         return 1.0 / sum

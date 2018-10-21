@@ -6,3 +6,4 @@ Oct 21
 HMM - 0.70113 (add 1 smoothing for word/tag, add 1 smoothing for tag/tag)
 HMM - 0.76936 (add 0.1 smoothing for word/tag, add 1 smoothing for tag/tag)
 HMM - 0.76952 (add 0.1 smoothing for word/tag, add 0.1 smoothing for tag/tag)
+HMM - 0.76854 (add 0.1 smoothing for word/tag, add 0.1 smoothing (k/k*len) for tag/tag)
