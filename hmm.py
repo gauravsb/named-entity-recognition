@@ -4,6 +4,7 @@ import json
 import math
 import csv
 import collections
+from collections import defaultdict
 
 ### CONSTANTS ###
 O_XXX = 0
@@ -121,11 +122,12 @@ def createUnsmoothedTagBigramCounts(lines_of_tags):
 
     for l in range(len(lines_of_tags)):
         line = lines_of_tags[l].split('\t')
+        #print (line)
         first_tag = tagNameToId(line[0])
         bigramCountMatrix[START, first_tag] += 1
         for i in range(1, len(line)):
             bigramCountMatrix[tagNameToId(line[i - 1]), tagNameToId(line[i])] += 1
-
+            #print (bigramCountMatrix[tagNameToId(line[i - 1]), tagNameToId(line[i])])
     return bigramCountMatrix
 
 
@@ -287,7 +289,7 @@ def calculateScoreAndBptr(prev_col_scores, tag_id, transition_probs, lex_gen_pro
     # bptr = i that gives max score
     transition_probs_t = transition_probs[:, tag_id]  # size 9 array where [i] = P(tag | t_i)
     # score_times_transition = prev_col_scores * transition_probs_t[:START]  #  size 9 array, [i] = Score[i,j-1]*P(tag|t_i); have to cut off start value from tx probs
-    score_times_transition = np.log(prev_col_scores) * np.log(transition_probs_t[:START])
+    score_times_transition = np.log(prev_col_scores) + np.log(transition_probs_t[:START])
     score_times_transition = np.exp(score_times_transition)
     best_prev_tag_id = np.argmax(score_times_transition)
     a = np.max(score_times_transition)
@@ -317,15 +319,64 @@ def getTagSequence(bptr_matrix, score_matrix):
 
     return tag_sequence
 
+def writeOutputToFile(fileName, strToWrite):
+    with open(fileName, 'w') as the_file:
+        the_file.write(strToWrite)
+
+
+def convertToSubmissionOutput(predicted_tags):
+    resultMap = defaultdict(list)
+    i = 0
+    while (i < len(predicted_tags)):
+        # print (predicted_tags[i][0])
+        if predicted_tags[i][0] == "O":
+            i += 1
+            continue
+        tag = predicted_tags[i][0]
+        startIndex = i
+        while (i + 1 < len(predicted_tags) and predicted_tags[i + 1][0] == predicted_tags[i][0]):
+            i += 1
+        endIndex = i
+        resultMap[tag].append((startIndex, endIndex))
+        i += 1
+    return resultMap
+
 
 if __name__ == "__main__":
     wordlines = read_token_lines("train.txt")
     taglines = read_tag_lines("train.txt")
     tokenmap = token_generation(wordlines)
     baseline_matrix = getbaseline_matrix(tokenmap, wordlines, taglines)
+    #print (taglines)
     bigramCountMatrix = createUnsmoothedTagBigramCounts(taglines)
     bigramProbMatrix = getBigramProbsFromCounts(bigramCountMatrix)
     prediction = read_prediction_lines("test.txt")
-    prediction = "\t".join(prediction)
-    result = runViterbi(bigramProbMatrix, baseline_matrix, tokenmap, prediction)
-    print (result)
+    #prediction = "\t".jlineoin(prediction)
+    finalTags = []
+    index = 0
+    for line in prediction:
+        #print (line)
+        result = runViterbi(bigramProbMatrix, baseline_matrix, tokenmap, line)
+        for tag in result:
+            finalTags.append((getTag(tag), index))
+            index += 1
+
+    finalResult = convertToSubmissionOutput(finalTags)
+    #print(finalResult)
+
+    string = "Type,Prediction\n"
+    for k, v in finalResult.items():
+        # print (k)
+        # print (v)
+        string += k
+        string += ","
+        for tuple in v:
+            string += str(tuple[0])
+            string += "-"
+            string += str(tuple[1])
+            string += " "
+        string += "\n"
+    print (string)
+    # writeToCSVFile(string)
+    writeOutputToFile('hmm-output.csv', string)
+
