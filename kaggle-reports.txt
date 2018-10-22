@@ -28,3 +28,6 @@ MEMM - 0.78429 (greedy approach, features - capitalization, previous 2 words & p
 
 MEMM - 0.75513 (with above features including CAPITALIZATION. This feature worsened the accuracy)
 
+Oct 22
+
+MEMM - 0.79629 (with viterbi & features excluding capitalization)
