@@ -7,3 +7,25 @@ HMM - 0.70113 (add 1 smoothing for word/tag, add 1 smoothing for tag/tag)
 HMM - 0.76936 (add 0.1 smoothing for word/tag, add 1 smoothing for tag/tag)
 HMM - 0.76952 (add 0.1 smoothing for word/tag, add 0.1 smoothing for tag/tag)
 HMM - 0.76854 (add 0.1 smoothing for word/tag, add 0.1 smoothing (k/k*len) for tag/tag)
+
+MEMM - 0.77863 (greedy approach, features - capitalization, previous word & pos tag & bio tag, next word & pos tag)
+
+  ==> Training (15 iterations)
+
+      Iteration    Log Likelihood    Accuracy
+      ---------------------------------------
+             1          -2.19722        0.831
+             2          -0.19415        0.839
+             3          -0.15164        0.929
+             4          -0.12641        0.965
+             5          -0.11036        0.975
+             6          -0.09901        0.979
+             7          -0.09039        0.982
+             8          -0.08352        0.984
+             9          -0.07788        0.986
+            10          -0.07312        0.987
+            11          -0.06903        0.988
+            12          -0.06547        0.989
+            13          -0.06233        0.990
+            14          -0.05953        0.990
+         Final          -0.05703        0.991
