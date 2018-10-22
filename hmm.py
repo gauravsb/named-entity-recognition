@@ -213,19 +213,19 @@ def getBaselinePrediction(prediction_string, baseline_matrix_counts, tokenToIdMa
 
 
 def isPER(str):
-    return str == "B-PER" or str == "I-PER"
+    return str == "B-PER" or str == "I-PER" or str == "PER"
 
 
 def isLOC(str):
-    return str == "B-LOC" or str == "I-LOC"
+    return str == "B-LOC" or str == "I-LOC" or str == "LOC"
 
 
 def isORG(str):
-    return str == "B-ORG" or str == "I-ORG"
+    return str == "B-ORG" or str == "I-ORG" or str == "ORG"
 
 
 def isMISC(str):
-    return str == "B-MISC" or str == "I-MISC"
+    return str == "B-MISC" or str == "I-MISC" or str == "MISC"
 
 
 def getTag(tag):
@@ -352,13 +352,12 @@ def convertToSubmissionOutput(predicted_tags):
 #
 # prediction_list: list of (tag, index) tuples for each line
 def calculateDevMetrics(prediction_list):
-    gold_standard_lines = read_tag_lines("dev.txt")
+    gold_standard_lines = read_tag_lines("validation.txt")
     gs_labels_list = [tags for lines in gold_standard_lines for tags in lines.split()]
     # PM[i, j] = number of trials where system predicted i, gold standard = j
     # entities mapped to indices in following order: LOC, PER, ORG, MISC, O
-    pm = np.zeros(5, 5)
+    pm = np.zeros((5, 5))
     for (tag, index) in prediction_list:
-
         i = np.argmax(np.array([isLOC(tag), isPER(tag), isORG(tag), isMISC(tag), 0.5]))
         j = np.argmax(np.array([isLOC(gs_labels_list[index]), isPER(gs_labels_list[index]),
                                 isORG(gs_labels_list[index]), isMISC(gs_labels_list[index]), 0.5]))
@@ -384,31 +383,15 @@ def calculateDevMetrics(prediction_list):
             p_LOC, p_PER, p_ORG, p_MISC, p_microaverage, p_macroaverage, f_measure)
 
 
-
-
-
-
-
-def calculateFMeasure(p, r):
-    if p + r == 0: return 0
-    return 2 * p * r / (p + r)
-
-
-
-
-
-
-
-
 if __name__ == "__main__":
-    wordlines = read_token_lines("train.txt")
-    taglines = read_tag_lines("train.txt")
+    wordlines = read_token_lines("train90.txt")
+    taglines = read_tag_lines("train90.txt")
     tokenmap = token_generation(wordlines)
     baseline_matrix = getbaseline_matrix(tokenmap, wordlines, taglines)
     #print (taglines)
     bigramCountMatrix = createUnsmoothedTagBigramCounts(taglines)
     bigramProbMatrix = getBigramProbsFromCounts(bigramCountMatrix)
-    prediction = read_prediction_lines("test.txt")
+    prediction = read_prediction_lines("validation.txt")
     #prediction = "\t".jlineoin(prediction)
     finalTags = []
     index = 0
@@ -419,6 +402,8 @@ if __name__ == "__main__":
             finalTags.append((getTag(tag), index))
             index += 1
 
+    metrics = calculateDevMetrics(finalTags)
+    print("Dev metrics: %s" % (metrics,))
     finalResult = convertToSubmissionOutput(finalTags)
     #print(finalResult)
 
