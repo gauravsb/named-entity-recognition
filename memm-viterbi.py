@@ -383,7 +383,7 @@ def runViterbi(sentence_string, pos_string):
         # tagProbMatrix: 10x9 matrix (extra for for start)
         # TPM[i, j] = P(tag = j | feature vector with t_prev = i)
         tagProbMatrix = getTagProbs(j, sentence_string, pos_string)
-        scores, bptrs = calculateScoreAndBptrCol(prev_col, tagProbMatrix)  # full column of score and backpointer values
+        scores, bptrs = calculateScoreAndBptrCol(prev_col, tagProbMatrix[:START, :])  # full column of score and backpointer values except start row
         scoreMatrix[:, j] = scores
         bptrMatrix[:, j] = bptrs
 
@@ -391,8 +391,6 @@ def runViterbi(sentence_string, pos_string):
 
 
 # return tuple of (score, bptr) for a given point in the viterbi matrix ([tag, word])
-# transition_probs = bigram prob matrix of tags
-# lex_gen_prob = P(word | tag)
 def calculateScoreAndBptrCol(prev_col_scores, tagProbMatrix):
     # score[j] = max_i (P(tag = j | feature vector with t_prev = i) * prev_col_scores[i])
     # bptr[j] = i that gives max score
@@ -416,6 +414,7 @@ def getTagSequence(bptr_matrix, score_matrix):
 
     col = sentence_len - 1  # start at last col
     row = last_tag
+    bptr_matrix = bptr_matrix.astype("int");
     while col >= 0:
         tag_sequence.append(idToTagName(row))
         row = bptr_matrix[row, col]
@@ -436,7 +435,7 @@ if __name__ == "__main__":
     # print(train)
 
     #f = open("maxent_viterbi_f1.pickle", "wb")
-    maxent_classifier = MaxentClassifier.train(train, max_iter=5)
+    maxent_classifier = MaxentClassifier.train(train, max_iter=3)
     #pickle.dump(maxent_classifier, f)
     #f.close()
 
