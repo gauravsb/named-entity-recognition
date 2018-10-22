@@ -371,8 +371,8 @@ def runViterbi(sentence_string, pos_string):
 
     # calculate first column separately because previous column is start
     # for first column: score[t] = P(tag = t | feature vector with t_prev = start), bptr = 0
+    tagProbMatrix = getTagProbs(0, sentence_string, pos_string)
     for i in range(numrows):
-        tagProbMatrix = getTagProbs(0, sentence_string, pos_string)
         score = tagProbMatrix[START, i]
         scoreMatrix[i, 0] = score
         # leave bptrMatrix[i, 0] as 0
