@@ -441,7 +441,8 @@ if __name__ == "__main__":
 
     #maxent_classifier.show_most_informative_features(10)
     '''
-    f = open('maxent_viterbi_f1.pickle', 'rb')
+    #f = open('maxent_viterbi_f1.pickle', 'rb')
+    f = open('maxent_classifier_f1.pickle', 'rb')
     maxent_classifier = pickle.load(f)
     f.close()
 
