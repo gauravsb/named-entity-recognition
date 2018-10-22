@@ -314,6 +314,7 @@ def getTagSequence(bptr_matrix, score_matrix):
     row = last_tag
     while col >= 0:
         tag_sequence.append(idToTagName(row))
+        bptr_matrix = bptr_matrix.astype("int")
         row = bptr_matrix[row, col]
         col -= 1
 
@@ -436,4 +437,3 @@ if __name__ == "__main__":
     print (string)
     # writeToCSVFile(string)
     writeOutputToFile('hmm-output.csv', string)
-

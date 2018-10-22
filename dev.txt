@@ -37996,4 +37996,3 @@ B-PER	I-PER	O	B-LOC	O	O	O	O	O
 Sergey	Klevchenya	(	Russia	)	37.86	;	6	.
 NNP	NNP	(	NNP	)	CD	:	LS	.
 B-PER	I-PER	O	B-LOC	O	O	O	O	O
-Yamakage	Hiroaki	(	Japan	)	37.93	;	7	.
