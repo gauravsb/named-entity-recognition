@@ -8,6 +8,7 @@ from collections import defaultdict
 import nltk
 from nltk.classify import MaxentClassifier
 import pickle
+import re
 
 ### CONSTANTS ###
 O_XXX = 0
@@ -185,6 +186,24 @@ def convertToSubmissionOutput(predicted_tags):
     return resultMap
 
 
+def remove_special_characters(input):
+    result = input
+    for i in ",.:!$%#@-+":
+        result = result.replace(i, "")
+    return result
+
+def is_special_character(input):
+    if len(input) != 1:
+        return False
+    res = re.search("[,:-]+", input)
+    return bool(res)
+
+def is_bracket(input):
+    if len(input) != 1:
+        return False
+    return input == "("
+
+
 def generateTrainingFeatures(wordSentences, posSentences, bioSentences):
     train = []
     # label of previous will also be a part of feature
@@ -198,28 +217,34 @@ def generateTrainingFeatures(wordSentences, posSentences, bioSentences):
         features = {}
         for j in range(len(wordList)):
             features["c"] = wordList[j][0].isupper()
-            #features["cc"] = wordList[j].isupper()
+            # features["cc"] = wordList[j].isupper()
             features["w"] = wordList[j]
             features["p"] = posList[j]
-            # TODO: add numeric feature
+            features["n"] = remove_special_characters(wordList[j]).isnumeric()
+            features["bk"] = is_bracket(wordList[j])
+            features["s"] = is_special_character(wordList[j])
             if j == 0:
                 features["w-1"] = "<s>"
                 features["p-1"] = "<s>"
                 features["b-1"] = "<s>"
+                #features["n-1"] = "<s>"
             else:
                 features["w-1"] = wordList[j - 1]
                 features["p-1"] = posList[j - 1]
                 features["b-1"] = bioList[j - 1]
+                #features["n-1"] = remove_special_characters(wordList[j - 1]).isnumeric()
             if j >= 2:
                 features["w-2"] = wordList[j - 2]
                 features["p-2"] = posList[j - 2]
-                #features["b-2"] = bioList[j - 2]
+            # features["b-2"] = bioList[j - 2] # this won't be done viterbi
             if j == len(wordList) - 1:
                 features["w+1"] = "<e>"
                 features["p+1"] = "<e>"
+                #features["n+1"] = "<e>"
             else:
                 features["w+1"] = wordList[j + 1]
                 features["p+1"] = posList[j + 1]
+                #features["n+1"] = remove_special_characters(wordList[j + 1]).isnumeric()
             # print(features, bioList[j])
             train.append((features, bioList[j]))
             features = {}
@@ -244,75 +269,85 @@ def classify(probabilityDistribution):
 def generatePredictionFeatures(predictionSentence, predictPosSentence, index, bioPredictionResult):
     features = {}
     features["c"] = predictionSentence[index][0].isupper()
-    #features["cc"] = predictionSentence[index].isupper()
+    # features["cc"] = predictionSentence[index].isupper()
     features["w"] = predictionSentence[index]
     features["p"] = predictPosSentence[index]
-    # TODO: add numeric feature
+    features["n"] = remove_special_characters(predictionSentence[index]).isnumeric()
+    features["bk"] = is_bracket(predictionSentence[index])
+    features["s"] = is_special_character(predictionSentence[index])
     if index == 0:
         features["w-1"] = "<s>"
         features["p-1"] = "<s>"
         features["b-1"] = "<s>"
+        #features["n-1"] = "<s>"
     else:
         features["w-1"] = predictionSentence[index - 1]
         features["p-1"] = predictPosSentence[index - 1]
         features["b-1"] = bioPredictionResult[index - 1]
+        #features["n-1"] = remove_special_characters(predictionSentence[index - 1]).isnumeric()
     if index >= 2:
         features["w-2"] = predictionSentence[index - 2]
         features["p-2"] = predictPosSentence[index - 2]
-        #features["b-2"] = bioPredictionResult[index - 2]
+        # features["b-2"] = bioPredictionResult[index - 2] # ONLY FOR NON-VITERBI
     if index == len(predictionSentence) - 1:
         features["w+1"] = "<e>"
         features["p+1"] = "<e>"
+        #features["n+1"] = "<e>"
     else:
         features["w+1"] = predictionSentence[index + 1]
         features["p+1"] = predictPosSentence[index + 1]
+        #features["n+1"] = remove_special_characters(predictionSentence[index + 1]).isnumeric()
     # print(features)
     return features
-
 
 
 def generatePredictionFeaturesGivenPrevTag(predictionSentence, predictPosSentence, index, previousTag):
     features = {}
     features["c"] = predictionSentence[index][0].isupper()
-    #features["cc"] = predictionSentence[index].isupper()
+    # features["cc"] = predictionSentence[index].isupper()
     features["w"] = predictionSentence[index]
     features["p"] = predictPosSentence[index]
-    # TODO: add numeric feature
+    features["n"] = remove_special_characters(predictionSentence[index]).isnumeric()
+    features["bk"] = is_bracket(predictionSentence[index])
+    features["s"] = is_special_character(predictionSentence[index])
     if index == 0:
         features["w-1"] = "<s>"
         features["p-1"] = "<s>"
         features["b-1"] = "<s>"
+        #features["n-1"] = "<s>"
     else:
         features["w-1"] = predictionSentence[index - 1]
         features["p-1"] = predictPosSentence[index - 1]
         features["b-1"] = previousTag
+        #features["n-1"] = remove_special_characters(predictionSentence[index - 1]).isnumeric()
     if index >= 2:
         features["w-2"] = predictionSentence[index - 2]
         features["p-2"] = predictPosSentence[index - 2]
-        #features["b-2"] = previousTwoTag
+        # features["b-2"] = previousTwoTag
     if index == len(predictionSentence) - 1:
         features["w+1"] = "<e>"
         features["p+1"] = "<e>"
+        #features["n+1"] = "<e>"
     else:
         features["w+1"] = predictionSentence[index + 1]
         features["p+1"] = predictPosSentence[index + 1]
+        #features["n+1"] = remove_special_characters(predictionSentence[index + 1]).isnumeric()
     # print(features)
     return features
-
 
 
 def getTagProbs(index, sentence_string, pos_string):
     tagProbMatrix = np.zeros([10, 9])
     sentence_string = sentence_string.split('\t')
     pos_string = pos_string.split('\t')
-    #print(sentence_string, index)
-    #print(pos_string)
+    # print(sentence_string, index)
+    # print(pos_string)
 
     for col in range(0, 9):
         previousTag = idToTagName(col)
         for row in range(0, 9):
             features = generatePredictionFeaturesGivenPrevTag(sentence_string, pos_string, index, idToTagName(row))
-            #print(features)
+            # print(features)
             probabilityDistribution = maxent_classifier.prob_classify(features)
             tagProbMatrix[row][col] = probabilityDistribution.prob(previousTag)
 
@@ -321,7 +356,7 @@ def getTagProbs(index, sentence_string, pos_string):
     for col in range(0, 9):
         tagProbMatrix[9][col] = probabilityDistribution.prob(idToTagName(col))
 
-    #print(tagProbMatrix)
+    # print(tagProbMatrix)
     return tagProbMatrix
 
 
@@ -383,7 +418,8 @@ def runViterbi(sentence_string, pos_string):
         # tagProbMatrix: 10x9 matrix (extra for for start)
         # TPM[i, j] = P(tag = j | feature vector with t_prev = i)
         tagProbMatrix = getTagProbs(j, sentence_string, pos_string)
-        scores, bptrs = calculateScoreAndBptrCol(prev_col, tagProbMatrix[:START, :])  # full column of score and backpointer values except start row
+        scores, bptrs = calculateScoreAndBptrCol(prev_col, tagProbMatrix[:START,
+                                                           :])  # full column of score and backpointer values except start row
         scoreMatrix[:, j] = scores
         bptrMatrix[:, j] = bptrs
 
@@ -396,10 +432,12 @@ def calculateScoreAndBptrCol(prev_col_scores, tagProbMatrix):
     # bptr[j] = i that gives max score
     prev_col_scores = prev_col_scores.reshape(prev_col_scores.size, 1)  # turn into column vec
     # STPM[i,j] = P(tag = j | prev tag = i) * prev_scores[i]
-    score_times_prob_matrix = np.log(tagProbMatrix) + np.log(prev_col_scores)  # pairwise multiply probs with previous scores column
+    score_times_prob_matrix = np.log(tagProbMatrix) + np.log(
+        prev_col_scores)  # pairwise multiply probs with previous scores column
     score_times_prob_matrix = np.exp(score_times_prob_matrix)
 
-    best_prev_tag_ids = np.argmax(score_times_prob_matrix, axis=0)  # for each current tag, which prev tag gives best score
+    best_prev_tag_ids = np.argmax(score_times_prob_matrix,
+                                  axis=0)  # for each current tag, which prev tag gives best score
     scores = np.max(score_times_prob_matrix, axis=0)  # for each current tag, what is the score
     return scores, best_prev_tag_ids
 
@@ -427,24 +465,26 @@ def getTagSequence(bptr_matrix, score_matrix):
 
 if __name__ == "__main__":
     # training
-    '''
-    wordLines = read_token_lines("validation.txt")
-    tagLines = read_tag_lines("validation.txt")
-    posLines = read_pos_lines("validation.txt")
+
+    wordLines = read_token_lines("train.txt")
+    tagLines = read_tag_lines("train.txt")
+    posLines = read_pos_lines("train.txt")
     train = generateTrainingFeatures(wordLines, posLines, tagLines)
     # print(train)
 
-    #f = open("maxent_viterbi_f1.pickle", "wb")
-    maxent_classifier = MaxentClassifier.train(train, max_iter=3)
-    #pickle.dump(maxent_classifier, f)
-    #f.close()
+    f = open("memm_viterbi_core_features_2_prev.pickle", "wb")
+    maxent_classifier = MaxentClassifier.train(train, max_iter=23)
+    pickle.dump(maxent_classifier, f)
+    f.close()
 
     #maxent_classifier.show_most_informative_features(10)
     '''
-    #f = open('maxent_viterbi_f1.pickle', 'rb')
+    # f = open('maxent_viterbi_f1.pickle', 'rb')
     f = open('maxent_classifier_f1.pickle', 'rb')
     maxent_classifier = pickle.load(f)
     f.close()
+    
+    '''
 
     prediction = read_prediction_lines("test.txt")
     posPrediction = read_pos_prediction_lines("test.txt")
@@ -452,12 +492,12 @@ if __name__ == "__main__":
     finalTags = []
     index = 0
     for i in range(len(prediction)):
-        #predSentence = prediction[i].split('\t')
-        #posPredSentence = posPrediction[i].split('\t')
-        #result = predict(predSentence, posPredSentence)
+        # predSentence = prediction[i].split('\t')
+        # posPredSentence = posPrediction[i].split('\t')
+        # result = predict(predSentence, posPredSentence)
         result = runViterbi(prediction[i], posPrediction[i])
-        #print("Viterbi result:")
-        #print(result)
+        # print("Viterbi result:")
+        # print(result)
         for tag in result:
             finalTags.append((getTag(tag), index))
             index += 1
@@ -478,8 +518,7 @@ if __name__ == "__main__":
         string += "\n"
     print(string)
     # writeToCSVFile(string)
-    writeOutputToFile('memm-viterbi-1.csv', string)
-
+    writeOutputToFile('memm-viterbi-core-features-todo-2.csv', string)
 
 '''
     f = open("maxent_classifier.pickle", "wb")

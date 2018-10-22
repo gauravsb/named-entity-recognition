@@ -8,6 +8,7 @@ from collections import defaultdict
 import nltk
 from nltk.classify import MaxentClassifier
 import pickle
+import re
 
 ### CONSTANTS ###
 O_XXX = 0
@@ -185,6 +186,18 @@ def convertToSubmissionOutput(predicted_tags):
     return resultMap
 
 
+def is_special_character(input):
+    if len(input) != 1:
+        return False
+    res = re.search("[,:-]+", input)
+    return bool(res)
+
+def is_bracket(input):
+    if len(input) != 1:
+        return False
+    return input == "("
+
+
 def generateTrainingFeatures(wordSentences, posSentences, bioSentences):
     train = []
     # label of previous will also be a part of feature
@@ -202,6 +215,7 @@ def generateTrainingFeatures(wordSentences, posSentences, bioSentences):
             features["w"] = wordList[j]
             features["p"] = posList[j]
             # TODO: add numeric feature
+            # TODO: add specialCharaacter feature
             if j == 0:
                 features["w-1"] = "<s>"
                 features["p-1"] = "<s>"
@@ -240,32 +254,45 @@ def classify(probabilityDistribution):
         # resultProbabilityList.append(probabilityOfABioTag)
     return maxTag
 
+def remove_special_characters(input):
+    result = input
+    for i in ",.:!$%#@-":
+        result = result.replace(i, "")
+    return result
+
+
 
 def generatePredictionFeatures(predictionSentence, predictPosSentence, index, bioPredictionResult):
     features = {}
     features["c"] = predictionSentence[index][0].isupper()
-    #features["cc"] = predictionSentence[index].isupper()
+    # features["cc"] = predictionSentence[index].isupper()
     features["w"] = predictionSentence[index]
     features["p"] = predictPosSentence[index]
-    # TODO: add numeric feature
+    features["n"] = remove_special_characters(predictionSentence[index]).isnumeric()
+    features["bk"] = is_bracket(predictionSentence[index])
+    features["s"] = is_special_character(predictionSentence[index])
     if index == 0:
         features["w-1"] = "<s>"
         features["p-1"] = "<s>"
         features["b-1"] = "<s>"
+        #features["n-1"] = "<s>"
     else:
         features["w-1"] = predictionSentence[index - 1]
         features["p-1"] = predictPosSentence[index - 1]
         features["b-1"] = bioPredictionResult[index - 1]
-    if index >= 2:
-        features["w-2"] = predictionSentence[index - 2]
-        features["p-2"] = predictPosSentence[index - 2]
-        #features["b-2"] = bioPredictionResult[index - 2]
+        #features["n-1"] = remove_special_characters(predictionSentence[index - 1]).isnumeric()
+    #if index >= 2:
+    #    features["w-2"] = predictionSentence[index - 2]
+    #    features["p-2"] = predictPosSentence[index - 2]
+        # features["b-2"] = bioPredictionResult[index - 2] # ONLY FOR NON-VITERBI
     if index == len(predictionSentence) - 1:
         features["w+1"] = "<e>"
         features["p+1"] = "<e>"
+        #features["n+1"] = "<e>"
     else:
         features["w+1"] = predictionSentence[index + 1]
         features["p+1"] = predictPosSentence[index + 1]
+        #features["n+1"] = remove_special_characters(predictionSentence[index + 1]).isnumeric()
     # print(features)
     return features
 
@@ -441,22 +468,22 @@ if __name__ == "__main__":
     #maxent_classifier.show_most_informative_features(10)
     '''
 
-    f = open('maxent_viterbi_f1.pickle', 'rb')
+    f = open('memm_viterbi_core_features_2_prev.pickle', 'rb')
     maxent_classifier = pickle.load(f)
     f.close()
 
-    prediction = read_prediction_lines("small-test.txt")
-    posPrediction = read_pos_prediction_lines("small-test.txt")
+    prediction = read_prediction_lines("test.txt")
+    posPrediction = read_pos_prediction_lines("test.txt")
     # prediction = "\t".join(prediction)
     finalTags = []
     index = 0
     for i in range(len(prediction)):
-        #predSentence = prediction[i].split('\t')
-        #posPredSentence = posPrediction[i].split('\t')
-        #result = predict(predSentence, posPredSentence)
-        result = runViterbi(prediction[i], posPrediction[i])
-        print("Viterbi result:")
-        print(result)
+        predSentence = prediction[i].split('\t')
+        posPredSentence = posPrediction[i].split('\t')
+        result = predict(predSentence, posPredSentence)
+        #result = runViterbi(prediction[i], posPrediction[i])
+        #print("Viterbi result:")
+        #print(result)
         for tag in result:
             finalTags.append((getTag(tag), index))
             index += 1
@@ -477,7 +504,7 @@ if __name__ == "__main__":
         string += "\n"
     print(string)
     # writeToCSVFile(string)
-    writeOutputToFile('memm-viterbi-test.csv', string)
+    writeOutputToFile('memm-core-todo-2.csv', string)
 
 
 '''

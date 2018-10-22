@@ -3,10 +3,12 @@ Oct 20
 Baseline - 0.70775
 
 Oct 21
+
 HMM - 0.70113 (add 1 smoothing for word/tag, add 1 smoothing for tag/tag)
 HMM - 0.76936 (add 0.1 smoothing for word/tag, add 1 smoothing for tag/tag)
 HMM - 0.76952 (add 0.1 smoothing for word/tag, add 0.1 smoothing for tag/tag)
-HMM - 0.76854 (add 0.1 smoothing for word/tag, add 0.1 smoothing (k/k*len) for tag/tag)
+
+NOTE: first character capitalization feature always there in every test below
 
 MEMM - 0.77863 (greedy approach, features - capitalization, previous word & pos tag & bio tag, next word & pos tag)
 
@@ -30,4 +32,34 @@ MEMM - 0.75513 (with above features including CAPITALIZATION. This feature worse
 
 Oct 22
 
-MEMM - 0.79629 (with viterbi & features excluding capitalization)
+MEMM - 0.79629 (with viterbi & features as in 0.78429 excluding capitalization)
+
+MEMM - 0.80139 (with viterbi & features as in 0.77863 - just consider previous features)
+
+TODO:
+
+MEMM - ? (with viterbi & all core featues including brackets & special chars & only previous & next words)
+memm-viterbi-core-features-todo-1.csv
+
+MEMM - ? (same as above but without viterbi)
+memm-core-todo-1.csv
+
+IF good result of previous 2:
+
+MEMM - ? (with viterbi & all core featues including brackets & special chars & only previous & next words)
+memm-viterbi-core-features-todo-2.csv
+MEMM - ? (same as above but without viterbi)
+memm-core-todo-2.csv
+
+
+MEMM - ? (with viterbi & add numeric features with prevoious and next word & pos tags)
+memm-viterbi-numeric-with-previous-todo-1.csv
+
+MEMM - ? (with viterbi & add numeric features with prevoious 2 and next 1 word & pos tags)
+memm-viterbi-numeric-with-previous-2-todo-2.csv
+
+MEMM - ? (NOT VITERBI & add numeric features with prevoious and next word & pos tags)
+memm-numeric-1-todo-1.csv
+
+MEMM - ? (NOT viterbi & add numeric features with prevoious 2 and next 1 word & pos tags)
+memm-numeric-2-todo-2.csv
