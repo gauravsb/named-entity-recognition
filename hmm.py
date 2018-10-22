@@ -344,6 +344,61 @@ def convertToSubmissionOutput(predicted_tags):
     return resultMap
 
 
+# return:
+# r_LOC, r_PER, r_ORG, r_MISC, r_microaverage, r_macroaverage,
+#   p_LOC, p_PER, p_ORG, p_MISC, p_microaverage, p_macroaverage,
+#   f_measure
+#
+# prediction_list: list of (tag, index) tuples for each line
+def calculateDevMetrics(prediction_list):
+    gold_standard_lines = read_tag_lines("dev.txt")
+    gs_labels_list = [tags for lines in gold_standard_lines for tags in lines.split()]
+    # PM[i, j] = number of trials where system predicted i, gold standard = j
+    # entities mapped to indices in following order: LOC, PER, ORG, MISC, O
+    pm = np.zeros(5, 5)
+    for (tag, index) in prediction_list:
+
+        i = np.argmax(np.array([isLOC(tag), isPER(tag), isORG(tag), isMISC(tag), 0.5]))
+        j = np.argmax(np.array([isLOC(gs_labels_list[index]), isPER(gs_labels_list[index]),
+                                isORG(gs_labels_list[index]), isMISC(gs_labels_list[index]), 0.5]))
+        pm[i, j] += 1
+
+    r_LOC = pm[0, 0] / np.sum(pm[:, 0])
+    r_PER = pm[1, 1] / np.sum(pm[:, 1])
+    r_ORG = pm[2, 2] / np.sum(pm[:, 2])
+    r_MISC = pm[3, 3] / np.sum(pm[:, 3])
+    r_microaverage = (pm[0, 0] + pm[1, 1] + pm[2, 2] + pm[3, 3]) / np.sum(pm[:, :4])
+    r_macroaverage = (r_LOC + r_PER + r_ORG + r_MISC) / 4
+
+    p_LOC = pm[0, 0] / np.sum(pm[0, :])
+    p_PER = pm[1, 1] / np.sum(pm[1, :])
+    p_ORG = pm[2, 2] / np.sum(pm[2, :])
+    p_MISC = pm[3, 3] / np.sum(pm[3, :])
+    p_microaverage = (pm[0, 0] + pm[1, 1] + pm[2, 2] + pm[3, 3]) / np.sum(pm[:4, :])
+    p_macroaverage = (p_LOC + p_PER + p_ORG + p_MISC) / 4
+
+    f_measure = 2 * p_microaverage * r_microaverage / (p_microaverage + r_microaverage)
+
+    return (r_LOC, r_PER, r_ORG, r_MISC, r_microaverage, r_macroaverage,
+            p_LOC, p_PER, p_ORG, p_MISC, p_microaverage, p_macroaverage, f_measure)
+
+
+
+
+
+
+
+def calculateFMeasure(p, r):
+    if p + r == 0: return 0
+    return 2 * p * r / (p + r)
+
+
+
+
+
+
+
+
 if __name__ == "__main__":
     wordlines = read_token_lines("train.txt")
     taglines = read_tag_lines("train.txt")
