@@ -117,9 +117,9 @@ def token_generation(data):
 
 
 # returns matrix M such that M[i, j] = # of (t_i t_j) sequences
-def createUnsmoothedTagBigramCounts(lines_of_tags):
+def createSmoothedTagBigramCounts(lines_of_tags):
     bigramCountMatrix = np.zeros([10, 10])
-    bigramCountMatrix.fill(0.1)
+    bigramCountMatrix.fill(2)  # smoothing
     print(bigramCountMatrix)
 
     for l in range(len(lines_of_tags)):
@@ -248,7 +248,8 @@ def getlexical_generation_probs(baseline_matrix, word, tag, tokenToIdMap):
         tag_column = baseline_matrix[:, tag_id]
         tag_count = np.sum(tag_column)
         word_count = baseline_matrix[token_id][tag_id]
-        return (word_count + 0.1) / (tag_count + len(tokenmap))
+        k = 2
+        return (word_count + k) / (tag_count + k*len(tokenmap))  # smoothing
     else:
         sum = np.sum(baseline_matrix)
         return 1.0 / sum
@@ -389,7 +390,7 @@ if __name__ == "__main__":
     tokenmap = token_generation(wordlines)
     baseline_matrix = getbaseline_matrix(tokenmap, wordlines, taglines)
     #print (taglines)
-    bigramCountMatrix = createUnsmoothedTagBigramCounts(taglines)
+    bigramCountMatrix = createSmoothedTagBigramCounts(taglines)
     bigramProbMatrix = getBigramProbsFromCounts(bigramCountMatrix)
     prediction = read_prediction_lines("validation.txt")
     #prediction = "\t".jlineoin(prediction)
