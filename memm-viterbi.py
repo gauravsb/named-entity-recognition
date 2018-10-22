@@ -305,14 +305,15 @@ def getTagProbs(index, sentence_string, pos_string):
     tagProbMatrix = np.zeros([10, 9])
     sentence_string = sentence_string.split('\t')
     pos_string = pos_string.split('\t')
-    print(sentence_string, index)
+    #print(sentence_string, index)
     #print(pos_string)
+
     for col in range(0, 9):
-        features = generatePredictionFeaturesGivenPrevTag(sentence_string, pos_string, index, idToTagName(col))
-        print(features)
-        probabilityDistribution = maxent_classifier.prob_classify(features)
         previousTag = idToTagName(col)
         for row in range(0, 9):
+            features = generatePredictionFeaturesGivenPrevTag(sentence_string, pos_string, index, idToTagName(row))
+            #print(features)
+            probabilityDistribution = maxent_classifier.prob_classify(features)
             tagProbMatrix[row][col] = probabilityDistribution.prob(previousTag)
 
     features = generatePredictionFeaturesGivenPrevTag(sentence_string, pos_string, index, "<s>")
@@ -320,8 +321,7 @@ def getTagProbs(index, sentence_string, pos_string):
     for col in range(0, 9):
         tagProbMatrix[9][col] = probabilityDistribution.prob(idToTagName(col))
 
-    print(tagProbMatrix.shape)
-    print(tagProbMatrix[4:4])
+    #print(tagProbMatrix)
     return tagProbMatrix
 
 
@@ -427,7 +427,7 @@ def getTagSequence(bptr_matrix, score_matrix):
 
 if __name__ == "__main__":
     # training
-
+    '''
     wordLines = read_token_lines("validation.txt")
     tagLines = read_tag_lines("validation.txt")
     posLines = read_pos_lines("validation.txt")
@@ -440,13 +440,13 @@ if __name__ == "__main__":
     #f.close()
 
     #maxent_classifier.show_most_informative_features(10)
+    '''
+    f = open('maxent_viterbi_f1.pickle', 'rb')
+    maxent_classifier = pickle.load(f)
+    f.close()
 
-    #f = open('maxent_viterbi_f1.pickle', 'rb')
-    #maxent_classifier = pickle.load(f)
-    #f.close()
-
-    prediction = read_prediction_lines("small-test.txt")
-    posPrediction = read_pos_prediction_lines("small-test.txt")
+    prediction = read_prediction_lines("test.txt")
+    posPrediction = read_pos_prediction_lines("test.txt")
     # prediction = "\t".join(prediction)
     finalTags = []
     index = 0
@@ -455,8 +455,8 @@ if __name__ == "__main__":
         #posPredSentence = posPrediction[i].split('\t')
         #result = predict(predSentence, posPredSentence)
         result = runViterbi(prediction[i], posPrediction[i])
-        print("Viterbi result:")
-        print(result)
+        #print("Viterbi result:")
+        #print(result)
         for tag in result:
             finalTags.append((getTag(tag), index))
             index += 1
@@ -477,7 +477,7 @@ if __name__ == "__main__":
         string += "\n"
     print(string)
     # writeToCSVFile(string)
-    writeOutputToFile('memm-viterbi-test-validation.csv', string)
+    writeOutputToFile('memm-viterbi-1.csv', string)
 
 
 '''
