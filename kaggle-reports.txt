@@ -14,18 +14,17 @@ MEMM - 0.77863 (greedy approach, features - capitalization, previous word & pos 
 
       Iteration    Log Likelihood    Accuracy
       ---------------------------------------
-             1          -2.19722        0.831
-             2          -0.19415        0.839
-             3          -0.15164        0.929
-             4          -0.12641        0.965
-             5          -0.11036        0.975
-             6          -0.09901        0.979
-             7          -0.09039        0.982
-             8          -0.08352        0.984
-             9          -0.07788        0.986
-            10          -0.07312        0.987
-            11          -0.06903        0.988
-            12          -0.06547        0.989
-            13          -0.06233        0.990
-            14          -0.05953        0.990
-         Final          -0.05703        0.991
+       Final(15)          -0.05703        0.991
+
+MEMM - 0.78429 (greedy approach, features - capitalization, previous 2 words & pos tags & bio tags, next word & pos tag)
+
+  ==> Training (25 iterations)
+
+      Iteration    Log Likelihood    Accuracy
+      ---------------------------------------
+            24          -0.04251        0.996
+         Final          -0.04134        0.996
+
+
+MEMM - 0.75513 (with above features including CAPITALIZATION. This feature worsened the accuracy)
+
