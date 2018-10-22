@@ -305,10 +305,11 @@ def getTagProbs(index, sentence_string, pos_string):
     tagProbMatrix = np.zeros([10, 9])
     sentence_string = sentence_string.split('\t')
     pos_string = pos_string.split('\t')
-    print(sentence_string)
-    print(pos_string)
+    print(sentence_string, index)
+    #print(pos_string)
     for col in range(0, 9):
         features = generatePredictionFeaturesGivenPrevTag(sentence_string, pos_string, index, idToTagName(col))
+        print(features)
         probabilityDistribution = maxent_classifier.prob_classify(features)
         previousTag = idToTagName(col)
         for row in range(0, 9):
@@ -319,7 +320,8 @@ def getTagProbs(index, sentence_string, pos_string):
     for col in range(0, 9):
         tagProbMatrix[9][col] = probabilityDistribution.prob(idToTagName(col))
 
-    print(tagProbMatrix)
+    print(tagProbMatrix.shape)
+    print(tagProbMatrix[4:4])
     return tagProbMatrix
 
 
@@ -426,24 +428,23 @@ def getTagSequence(bptr_matrix, score_matrix):
 
 if __name__ == "__main__":
     # training
-    '''
-    wordLines = read_token_lines("train.txt")
-    tagLines = read_tag_lines("train.txt")
-    posLines = read_pos_lines("train.txt")
+
+    wordLines = read_token_lines("validation.txt")
+    tagLines = read_tag_lines("validation.txt")
+    posLines = read_pos_lines("validation.txt")
     train = generateTrainingFeatures(wordLines, posLines, tagLines)
     # print(train)
 
-    f = open("maxent_viterbi_f1.pickle", "wb")
-    maxent_classifier = MaxentClassifier.train(train, max_iter=20)
-    pickle.dump(maxent_classifier, f)
-    f.close()
+    #f = open("maxent_viterbi_f1.pickle", "wb")
+    maxent_classifier = MaxentClassifier.train(train, max_iter=5)
+    #pickle.dump(maxent_classifier, f)
+    #f.close()
 
     #maxent_classifier.show_most_informative_features(10)
-    '''
 
-    f = open('maxent_viterbi_f1.pickle', 'rb')
-    maxent_classifier = pickle.load(f)
-    f.close()
+    #f = open('maxent_viterbi_f1.pickle', 'rb')
+    #maxent_classifier = pickle.load(f)
+    #f.close()
 
     prediction = read_prediction_lines("small-test.txt")
     posPrediction = read_pos_prediction_lines("small-test.txt")
@@ -477,7 +478,7 @@ if __name__ == "__main__":
         string += "\n"
     print(string)
     # writeToCSVFile(string)
-    writeOutputToFile('memm-viterbi-test.csv', string)
+    writeOutputToFile('memm-viterbi-test-validation.csv', string)
 
 
 '''

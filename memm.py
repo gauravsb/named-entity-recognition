@@ -7,6 +7,7 @@ import collections
 from collections import defaultdict
 import nltk
 from nltk.classify import MaxentClassifier
+import pickle
 
 ### CONSTANTS ###
 O_XXX = 0
@@ -56,6 +57,12 @@ def read_token_lines(filename):
 def read_prediction_lines(filename):
     lines = read_all_lines(filename)
     desired_lines = lines[0::3]
+    return desired_lines
+
+
+def read_pos_prediction_lines(filename):
+    lines = read_all_lines(filename)
+    desired_lines = lines[1::3]
     return desired_lines
 
 
@@ -199,7 +206,7 @@ def classify(probabilityDistribution):
 # returns list of most probable sequence of tag names for given sentence
 # sentence_string, pos_string = strings of space-separated words/POS tags for the test sentence
 def runViterbi(sentence_string, pos_string):
-    sentenceList = sentence.split('\t')
+    sentenceList = sentence_string.split('\t')
     numrows = 9  # of BIO tags
     numcols = len(sentenceList)
     scoreMatrix = np.zeros([numrows, numcols])
@@ -262,24 +269,43 @@ def getTagSequence(bptr_matrix, score_matrix):
     return tag_sequence
 
 if __name__ == "__main__":
-    wordLines = read_token_lines("validation.txt")
-    tagLines = read_tag_lines("validation.txt")
-    posLines = read_pos_lines("validation.txt")
-    train = generateFeatures(wordLines, posLines, tagLines)
-    #print(train)
-    maxent_classifier = MaxentClassifier.train(train, max_iter = 6)
-    test = []
-    features={}
-    features["word"] = "CRICKET"
-    features["pos"] = "NNP"
-    test.append((features, "O"))
-    #print(maxent_classifier.prob_classify(({"word" : "CRICKET","pos" : "NNP"},"O")))
-    probabilityDistribution = maxent_classifier.prob_classify(features)
-    #print(maxent_classifier.prob_classify(features))
-    classify(probabilityDistribution)
-    #maxent_classifier.show_most_informative_features(10)
 
-    #tokenmap = token_generation(wordlines)
+    prediction = read_prediction_lines("small-test.txt")
+    posPrediction = read_pos_prediction_lines("small-test.txt")
+    # prediction = "\t".join(prediction)
+    finalTags = []
+    index = 0
+    for i in range(len(prediction)):
+        # print (line)
+        #predSentence = prediction[i].split('\t')
+        #posPredSentence = posPrediction[i].split('\t')
+        result = runViterbi(prediction[i], posPrediction[i])
+        print("Viterbi result:")
+        print(result)
+        for tag in result:
+            finalTags.append((getTag(tag), index))
+            index += 1
+
+    # print(finalTags)
+    finalResult = convertToSubmissionOutput(finalTags)
+    print(finalResult)
+
+    string = "Type,Prediction\n"
+    for k, v in finalResult.items():
+        # print (k)
+        # print (v)
+        string += k
+        string += ","
+        for tuple in v:
+            string += str(tuple[0])
+            string += "-"
+            string += str(tuple[1])
+            string += " "
+        string += "\n"
+    print(string)
+    # writeToCSVFile(string)
+    writeOutputToFile('memm-viterbi-test.csv', string)
+
 
 '''
     prediction = read_prediction_lines("test.txt")
