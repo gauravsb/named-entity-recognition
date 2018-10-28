@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/../../project-1/NLP-Project/.idea/NLP-Project.iml" filepath="$PROJECT_DIR$/../../project-1/NLP-Project/.idea/NLP-Project.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/named-entity-recognition.iml" filepath="$PROJECT_DIR$/.idea/named-entity-recognition.iml" />
+    </modules>
+  </component>
+</project>

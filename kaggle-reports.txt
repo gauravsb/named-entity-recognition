@@ -38,7 +38,7 @@ MEMM - 0.80139 (with viterbi & features as in 0.77863 - just consider previous f
 
 TODO:
 
-MEMM - ? (with viterbi & all core featues including brackets & special chars & only previous & next words)
+MEMM - 0.79233 (with viterbi & all core featues including brackets & special chars & only previous & next words)
 memm-viterbi-core-features-todo-1.csv
 
 MEMM - ? (same as above but without viterbi)
@@ -52,13 +52,13 @@ MEMM - ? (same as above but without viterbi)
 memm-core-todo-2.csv
 
 
-MEMM - ? (with viterbi & add numeric features with prevoious and next word & pos tags)
+MEMM - 0.78856 (with viterbi & add numeric features with prevoious and next word & pos tags)
 memm-viterbi-numeric-with-previous-todo-1.csv
 
 MEMM - ? (with viterbi & add numeric features with prevoious 2 and next 1 word & pos tags)
 memm-viterbi-numeric-with-previous-2-todo-2.csv
 
-MEMM - ? (NOT VITERBI & add numeric features with prevoious and next word & pos tags)
+MEMM - 0.77249 (NOT VITERBI & add numeric features with prevoious and next word & pos tags)
 memm-numeric-1-todo-1.csv
 
 MEMM - ? (NOT viterbi & add numeric features with prevoious 2 and next 1 word & pos tags)
